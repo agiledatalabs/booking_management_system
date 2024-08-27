@@ -1,20 +1,38 @@
 {
   "name": "booking_management_system",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "private": true,
+  "main": "server.js",
   "workspaces": [
-    "backend",
     "frontend"
   ],
   "scripts": {
-    "install-deps": "npm install",
-    "migrate": "npm run migrate --prefix backend",
-    "start": "concurrently \"npm run dev --prefix backend\" \"npm run start --prefix frontend\""
+    "build": "npx prisma generate && npx prisma migrate dev --name init && npm run build --prefix frontend && npx tsc && mv frontend/build dist/ ",
+    "migrate": "npx prisma migrate dev --name init",
+    "start": "node api/server.js",
+    "postinstall": "npx prisma generate"
   },
   "keywords": [],
   "author": "AgileDataLabs",
+  "dependencies": {
+    "@prisma/client": "^5.18.0",
+    "axios": "^1.7.5",
+    "body-parser": "^1.20.2",
+    "booking_management_system": "file:",
+    "express": "^4.19.2",
+    "prisma": "^5.18.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-modal": "^3.16.1",
+    "web-vitals": "^2.1.4"
+  },
   "devDependencies": {
-    "concurrently": "^7.0.0"
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.5.0",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }
