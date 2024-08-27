@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = "file:./sqlite/dev.db"
 }
 
 generator client {
@@ -8,7 +8,73 @@ generator client {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  name  String
-  email String  @unique
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String    @unique
+  mobile   Int       @unique
+  type     String    //Admin, Internal, External
+  messages Message[]
+  orders   Order[]
+}
+
+model ResourceType {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique
+  resources Resource[]
+}
+
+model Resource {
+  id             Int          @id @default(autoincrement())
+  resourceTypeId           Int
+  name           String       @unique
+  // imageUrl       String       //store image elsewhere and give Image url
+  // imageBlob      Bytes        //store image
+  maxQty         Int          @default(1)
+  priceInternal Int
+  priceExternal Int
+  bookingType    String
+  active         Boolean
+  resourceType   ResourceType @relation(fields: [resourceTypeId], references: [id])
+  // bookingTypes   BookingType  @relation(fields: [bookingType], references: [id])
+  orders         Order[]
+}
+
+// model BookingType {
+//   id         Int        @id @default(autoincrement())
+//   type       String // 2-hour, half-day, full-day
+//   resourceId Int
+//   resources  Resource[]
+//   timeSlots  TimeSlot[]
+// }
+
+// model TimeSlot {
+//   id            Int         @id @default(autoincrement())
+//   slotName      String // 1, 2, 3, 4 (for 2-hour slots)
+//   bookingType   String
+//   orders        Order[]
+// }
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String
+  sentBy    Int
+  timestamp DateTime
+  user      User     @relation(fields: [sentBy], references: [id])
+}
+
+model Order {
+  id            Int      @id @default(autoincrement())
+  mode          String
+  transactionId Int
+  bookingDate   DateTime
+  amount        Int
+  resourceId    Int
+  resourceQty   Int
+  BookingType   String
+  timeSlot      String
+  timestamp     DateTime
+  userId        Int
+  status        String
+  user          User     @relation(fields: [userId], references: [id])
+  resouece      Resource @relation(fields: [resourceId], references: [id])
 }

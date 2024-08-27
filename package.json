@@ -2,11 +2,19 @@
   "name": "booking_management_system",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install-deps": "npm install",
+    "migrate": "npm run migrate --prefix backend",
+    "start": "concurrently \"npm run dev --prefix backend\" \"npm run start --prefix frontend\""
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "AgileDataLabs",
+  "devDependencies": {
+    "concurrently": "^7.0.0"
+  }
 }
