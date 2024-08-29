@@ -11,6 +11,83 @@ const generateBlockKey = (userId: string, resourceId: string, bookingDate: strin
   return `${resourceId}-${bookingDate}-${timeSlot}`;
 };
 
+/**
+ * @swagger
+ * /orders/blockOrder:
+ *   post:
+ *     summary: Block an order
+ *     tags: [Orders]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - resourceId
+ *               - bookingDate
+ *               - timeSlot
+ *               - resourceQty
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user
+ *               resourceId:
+ *                 type: string
+ *                 description: The ID of the resource
+ *               bookingDate:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the booking
+ *               timeSlot:
+ *                 type: string
+ *                 description: The time slot for the booking
+ *               resourceQty:
+ *                 type: number
+ *                 description: The quantity of the resource being booked
+ *     responses:
+ *       200:
+ *         description: Resource blocked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *       400:
+ *         description: Missing required fields or validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       404:
+ *         description: Resource not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 export const blockOrder = async (req: Request, res: Response) => {
   const { userId, resourceId, bookingDate, timeSlot, resourceQty } = req.body;
 
@@ -87,6 +164,92 @@ export const blockOrder = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /orders/confirmOrder:
+ *   post:
+ *     summary: Confirm an order
+ *     tags: [Orders]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - resourceId
+ *               - resourceQty
+ *               - bookingDate
+ *               - amount
+ *               - bookingType
+ *               - timeSlot
+ *               - mode
+ *               - transactionId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user
+ *               resourceId:
+ *                 type: string
+ *                 description: The ID of the resource
+ *               resourceQty:
+ *                 type: number
+ *                 description: The quantity of the resource being booked
+ *               bookingDate:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the booking
+ *               amount:
+ *                 type: number
+ *                 description: The amount for the booking
+ *               bookingType:
+ *                 type: string
+ *                 description: The type of booking
+ *               timeSlot:
+ *                 type: string
+ *                 description: The time slot for the booking
+ *               mode:
+ *                 type: string
+ *                 description: The mode of payment
+ *               transactionId:
+ *                 type: string
+ *                 description: The transaction ID
+ *     responses:
+ *       200:
+ *         description: Order confirmed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 order:
+ *                   type: object
+ *                   description: The confirmed order details
+ *       400:
+ *         description: Missing required fields or validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 export const confirmOrder = async (req: Request, res: Response) => {
   try {
     const { userId, resourceId, resourceQty, bookingDate, amount, bookingType, timeSlot, mode, transactionId } = req.body;
@@ -129,4 +292,3 @@ export const confirmOrder = async (req: Request, res: Response) => {
     res.status(500).json({ error: (error as Error).message });
   }
 };
-

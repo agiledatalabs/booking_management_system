@@ -3,6 +3,104 @@ import { Request, Response } from 'express';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - mobile
+ *         - type
+ *         - password
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The auto-generated id of the user
+ *         name:
+ *           type: string
+ *           description: The name of the user
+ *         email:
+ *           type: string
+ *           description: The email of the user
+ *         mobile:
+ *           type: string
+ *           description: The mobile number of the user
+ *         type:
+ *           type: string
+ *           description: The type of the user
+ *         password:
+ *           type: string
+ *           description: The password of the user
+ *         active:
+ *           type: boolean
+ *           description: Whether the user is active
+ */
+
+/**
+ * @swagger
+ * /createUser:
+ *   post:
+ *     summary: Create a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - mobile
+ *               - type
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the user
+ *               email:
+ *                 type: string
+ *                 description: The email of the user
+ *               mobile:
+ *                 type: string
+ *                 description: The mobile number of the user
+ *               type:
+ *                 type: string
+ *                 description: The type of the user
+ *               password:
+ *                 type: string
+ *                 description: The password of the user
+ *     responses:
+ *       201:
+ *         description: The created user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Unique constraint failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 const createUser = async (req: Request, res: Response) => {
   try {
     const { name, email, mobile, type, password } = req.body;
@@ -39,6 +137,47 @@ const createUser = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /deactivateUser/{id}:
+ *   put:
+ *     summary: Deactivate a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The id of the user to deactivate
+ *     responses:
+ *       200:
+ *         description: The deactivated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 const deactivateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -61,6 +200,70 @@ const deactivateUser = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/editUser/{id}:
+ *   put:
+ *     summary: Edit a user's email or mobile
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The id of the user to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The new email of the user
+ *               mobile:
+ *                 type: string
+ *                 description: The new mobile number of the user
+ *     responses:
+ *       200:
+ *         description: The updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       400:
+ *         description: Unique constraint failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 const editUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -99,6 +302,59 @@ const editUser = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/updatePassword/{id}:
+ *   put:
+ *     summary: Update a user's password
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The id of the user to update the password for
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: The new password of the user
+ *     responses:
+ *       200:
+ *         description: The updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Some server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
 const updatePassword = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
