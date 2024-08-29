@@ -1,12 +1,20 @@
-import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AddResourcePage from './components/ResourcesMainComponent';
 import './App.css';
+import Navbar from "./components/Navbar";
 
-const App: React.FC = () => {
+const App = () => {
   return (
-    <div>
-      <AddResourcePage />
-    </div>
+    <>
+      <Router>
+        <div className="h-full">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<AddResourcePage />} />
+          </Routes>
+        </div>
+      </Router>
+    </>
   );
 };
 
