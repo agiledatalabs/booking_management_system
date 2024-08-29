@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url = env("DB_PRISMA_URL") // uses connection pooling
+  url      = env("DB_PRISMA_URL") // uses connection pooling
 }
 
 generator client {
@@ -8,35 +8,40 @@ generator client {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  name     String
-  email    String    @unique
-  mobile   Int       @unique
-  type     String    //Admin, Internal, External
-  messages Message[]
-  orders   Order[]
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  mobile           Int       @unique
+  type             String //Admin, Internal, External
+  active           Boolean   @default(true)
+  password         String // Hashed password
+  resourceLimit    Int       @default(5)
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  orders           Order[]
 }
 
 model ResourceType {
-  id       Int        @id @default(autoincrement())
-  name     String     @unique
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
   resources Resource[]
 }
 
 model Resource {
-  id             Int          @id @default(autoincrement())
-  resourceTypeId           Int
-  name           String       @unique
+  id              Int          @id @default(autoincrement())
+  resourceTypeId  Int
+  name            String       @unique
   // imageUrl       String       //store image elsewhere and give Image url
   // imageBlob      Bytes        //store image
-  maxQty         Int          @default(1)
-  priceInternal Int
-  priceExternal Int
-  bookingType    String
-  active         Boolean
-  resourceType   ResourceType @relation(fields: [resourceTypeId], references: [id])
+  maxQty          Int          @default(1)
+  priceInternal   Int
+  priceExternal   Int
+  bookingType     String
+  active          Boolean
+  resourceType    ResourceType @relation(fields: [resourceTypeId], references: [id])
+  requireApproval Boolean      @default(true)
   // bookingTypes   BookingType  @relation(fields: [bookingType], references: [id])
-  orders         Order[]
+  orders          Order[]
 }
 
 // model BookingType {
@@ -55,22 +60,28 @@ model Resource {
 // }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  text      String
-  sentBy    Int
-  timestamp DateTime
-  user      User     @relation(fields: [sentBy], references: [id])
+  id             Int      @id @default(autoincrement())
+  text           String
+  sentBy         Int
+  recepientType  String
+  sentTo         Int
+  readByReciever Boolean  @default(false)
+  timestamp      DateTime @default(now())
+  sender         User     @relation("SentMessages", fields: [sentBy], references: [id])
+  reciever       User     @relation("ReceivedMessages", fields: [sentTo], references: [id])
+
+  @@index([timestamp])
 }
 
 model Order {
   id            Int      @id @default(autoincrement())
   mode          String
-  transactionId Int
+  transactionId String
   bookingDate   DateTime
   amount        Int
   resourceId    Int
   resourceQty   Int
-  BookingType   String
+  bookingType   String
   timeSlot      String
   timestamp     DateTime
   userId        Int
