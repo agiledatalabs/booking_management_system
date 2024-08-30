@@ -381,9 +381,99 @@ const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Retrieve a list of users with pagination
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: false
+ *         description: The page number to retrieve
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
+ *         description: The number of users per page
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalUsers:
+ *                   type: integer
+ *                   description: The total number of users
+ *                 totalPages:
+ *                   type: integer
+ *                   description: The total number of pages
+ *                 currentPage:
+ *                   type: integer
+ *                   description: The current page number
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: The user ID
+ *                       name:
+ *                         type: string
+ *                         description: The user name
+ *                       email:
+ *                         type: string
+ *                         description: The user email
+ *       500:
+ *         description: Some error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+const getAllUsers = async (req: Request, res: Response) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const take = Number(limit);
+
+  try {
+    const users = await prisma.user.findMany({
+      skip,
+      take,
+    });
+
+    const totalUsers = await prisma.user.count();
+
+    res.status(200).json({
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / take),
+      currentPage: Number(page),
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+
 export {
   createUser,
   deactivateUser,
   editUser,
   updatePassword,
+  getAllUsers
 };

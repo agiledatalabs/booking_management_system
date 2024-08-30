@@ -28,20 +28,20 @@ model ResourceType {
 }
 
 model Resource {
-  id              Int          @id @default(autoincrement())
-  resourceTypeId  Int
-  name            String       @unique
+  id             Int          @id @default(autoincrement())
+  resourceTypeId Int
+  name           String       @unique
   // imageUrl       String       //store image elsewhere and give Image url
   // imageBlob      Bytes        //store image
-  maxQty          Int          @default(1)
-  priceInternal   Int
-  priceExternal   Int
-  bookingType     String
-  active          Boolean
-  resourceType    ResourceType @relation(fields: [resourceTypeId], references: [id])
-  requireApproval Boolean      @default(true)
+  maxQty         Int          @default(1)
+  priceInternal  Int
+  priceExternal  Int
+  bookingType    String
+  active         Boolean
+  resourceType   ResourceType @relation(fields: [resourceTypeId], references: [id])
+  // requireApproval Boolean      @default(true)
   // bookingTypes   BookingType  @relation(fields: [bookingType], references: [id])
-  orders          Order[]
+  orders         Order[]
 }
 
 // model BookingType {

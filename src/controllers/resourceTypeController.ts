@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -22,7 +22,7 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /resource-types:
+ * /resourceTypes:
  *   get:
  *     summary: Get all resource types
  *     tags: [ResourceTypes]
@@ -57,7 +57,7 @@ export const getResourceTypes = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /resource-types:
+ * /resourceTypes:
  *   post:
  *     summary: Add a new resource type
  *     tags: [ResourceTypes]
@@ -105,79 +105,39 @@ export const addResourceType = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /resources:
- *   post:
- *     summary: Add a new resource
- *     tags: [Resources]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - name
- *               - resourceTypeId
- *               - maxQty
- *               - priceInternal
- *               - priceExternal
- *               - bookingType
- *               - active
- *             properties:
- *               name:
- *                 type: string
- *                 description: The name of the resource
- *               resourceTypeId:
- *                 type: integer
- *                 description: The ID of the resource type
- *               maxQty:
- *                 type: integer
- *                 description: The maximum quantity of the resource
- *               priceInternal:
- *                 type: number
- *                 description: The internal price of the resource
- *               priceExternal:
- *                 type: number
- *                 description: The external price of the resource
- *               bookingType:
- *                 type: string
- *                 description: The type of booking
- *               active:
- *                 type: boolean
- *                 description: Whether the resource is active
+ * /api/resourceTypes/{id}:
+ *   delete:
+ *     summary: Delete a resource type
+ *     tags: [ResourceTypes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the resource type to delete
  *     responses:
- *       201:
- *         description: The created resource
+ *       200:
+ *         description: Resource type deleted successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
- *                   description: The auto-generated id of the resource
- *                 name:
+ *                 message:
  *                   type: string
- *                   description: The name of the resource
- *                 resourceTypeId:
- *                   type: integer
- *                   description: The ID of the resource type
- *                 maxQty:
- *                   type: integer
- *                   description: The maximum quantity of the resource
- *                 priceInternal:
- *                   type: number
- *                   description: The internal price of the resource
- *                 priceExternal:
- *                   type: number
- *                   description: The external price of the resource
- *                 bookingType:
+ *                   description: Success message
+ *       404:
+ *         description: Resource type not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
  *                   type: string
- *                   description: The type of booking
- *                 active:
- *                   type: boolean
- *                   description: Whether the resource is active
- *       400:
+ *                   description: Error message
+ *       500:
  *         description: Some error occurred
  *         content:
  *           application/json:
@@ -188,28 +148,103 @@ export const addResourceType = async (req: Request, res: Response) => {
  *                   type: string
  *                   description: Error message
  */
-export const addResource = async (req: Request, res: Response) => {
+export const deleteResourceType = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
   try {
-    console.log(req.body);
-    const { name, resourceTypeId, maxQty, priceInternal, priceExternal, bookingType, active } = req.body;
-    // console.log(price_external, priceInternal);
-    const newResource = await prisma.resource.create({
-      data: {
-        name,
-        resourceTypeId,
-        maxQty,
-        priceInternal,
-        priceExternal,
-        bookingType,
-        active,
-        // resourceType: {
-        //   connect: { id: resourceTypeId },
-        // },
-      },
+    await prisma.resourceType.delete({
+      where: { id: Number(id) },
     });
-    res.status(201).json(newResource);
+    res.status(200).json({ message: 'Resource type deleted successfully' });
   } catch (error) {
-    console.log(error)
-    res.status(400).json({ error: (error as Error).message });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'Resource type not found.' });
+      }
+    }
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+/**
+ * @swagger
+ * /api/resourceTypes/{id}:
+ *   put:
+ *     summary: Edit a resource type
+ *     tags: [ResourceTypes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the resource type to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The resource type name
+ *     responses:
+ *       200:
+ *         description: The updated resource type
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: The resource type ID
+ *                 name:
+ *                   type: string
+ *                   description: The resource type name
+ *       400:
+ *         description: Some error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       404:
+ *         description: Resource type not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+export const editResourceType = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required to update the resource type.' });
+  }
+
+  try {
+    const updatedResourceType = await prisma.resourceType.update({
+      where: { id: Number(id) },
+      data: { name },
+    });
+
+    res.status(200).json(updatedResourceType);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'Resource type not found.' });
+      }
+    }
+    res.status(500).json({ error: (error as Error).message });
   }
 };

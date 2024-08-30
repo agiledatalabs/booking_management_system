@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { getResourceTypes, addResourceType, addResource } from '../controllers/resourceTypeController';
+import { getResourceTypes, addResourceType } from '../controllers/resourceTypeController';
+import { getResources } from '../controllers/resourceController';
 
 const router = Router();
 
-router.get('/resource-types', getResourceTypes);
-router.post('/resource-types', addResourceType);
-router.post('/resources', addResource);
+router.get('/resourceTypes', getResourceTypes);
+router.post('/resourceTypes', addResourceType);
+router.get('/resources', getResources);
 
 export default router;

@@ -133,6 +133,7 @@ dist
 # Prisma sqlite
 **/prisma/sqlite
 .env*.local
+.env*
 
 # vercel
 .vercel
