@@ -6,6 +6,7 @@ import path from 'path';
 import resourceRoutes from './routes/resourceRoutes';
 import orderRoutes from './routes/orderRoutes';
 import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes';
 import messageRoutes from './routes/messageRoutes';
 import adminRoutes from './routes/adminRoutes';
 import swaggerUi from 'swagger-ui-express';
@@ -37,6 +38,14 @@ app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Apply authenticateToken middleware to all routes except login and register
+app.use(authenticateToken.unless({
+  path: [
+    { url: '/api/login', methods: ['POST'] },
+    { url: '/api/register', methods: ['POST'] }
+  ]
+}));
+
 // Admin routes
 app.use('/api/admin', adminRoutes)
 
@@ -44,6 +53,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
+app.use('/api', authRoutes)
 app.use('/api', resourceRoutes);
 app.use('/api', orderRoutes);
 app.use('/api', userRoutes);

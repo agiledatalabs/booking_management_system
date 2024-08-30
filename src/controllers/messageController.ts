@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -76,13 +76,13 @@ const prisma = new PrismaClient();
  */
 export const sendMessage = async (req: Request, res: Response) => {
   try {
-    const { text, sentBy, sentTo } = req.body;
+    const { text } = req.body;
+    const sentBy = (req.user as User).id;
 
     const message = await prisma.message.create({
       data: {
         text,
         sentBy,
-        sentTo,
         recepientType: 'Admin',
       },
     });
@@ -129,9 +129,10 @@ export const sendMessage = async (req: Request, res: Response) => {
  *       500:
  *         description: Some server error
  */
-export const replyMessage = async (req: Request, res: Response) => {
+export const adminReplyMessage = async (req: Request, res: Response) => {
   try {
-    const { text, sentBy, sentTo } = req.body;
+    const { text, sentTo } = req.body;
+    const sentBy = (req.user as User).id;
 
     const message = await prisma.message.create({
       data: {
@@ -185,9 +186,9 @@ export const replyMessage = async (req: Request, res: Response) => {
  *       500:
  *         description: Some server error
  */
-export const getUserMessages = async (req: Request, res: Response) => {
+export const getMessages = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = (req.user as User).id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -218,39 +219,90 @@ export const getUserMessages = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /messages/admin/unread:
+ * /admin/messages/getUnread:
  *   get:
- *     summary: Get unread messages for admin
+ *     summary: Get unread messages for admin with pagination
  *     tags: [Messages]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: The list of unread messages
+ *         description: A list of unread messages
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Message'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     totalMessages:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *                     currentPage:
+ *                       type: integer
+ *                     pageSize:
+ *                       type: integer
  *       500:
  *         description: Some server error
  */
 export const getAdminUnreadMessages = async (req: Request, res: Response) => {
   try {
-    const unreadMessages = await prisma.message.findMany({
-      where: {
-        recepientType: 'Admin',
-        readByReciever: false,
-      },
-      include: {
-        sender: true,
-        reciever: true,
-      },
-      orderBy: {
-        timestamp: 'desc',
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const [unreadMessages, totalMessages] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          recepientType: 'Admin',
+          readByReciever: false,
+        },
+        include: {
+          sender: true,
+          reciever: true,
+        },
+        orderBy: {
+          timestamp: 'desc',
+        },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.message.count({
+        where: {
+          recepientType: 'Admin',
+          readByReciever: false,
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalMessages / limit);
+
+    res.status(200).json({
+      data: unreadMessages,
+      meta: {
+        totalMessages,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
       },
     });
-
-    res.status(200).json(unreadMessages);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
@@ -293,7 +345,7 @@ export const getAdminUnreadMessages = async (req: Request, res: Response) => {
  *       500:
  *         description: Some server error
  */
-export const getConversation = async (req: Request, res: Response) => {
+export const getUserMessages = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const page = parseInt(req.query.page as string) || 1;

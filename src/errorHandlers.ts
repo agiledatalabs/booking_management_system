@@ -14,7 +14,11 @@ export const uiErrorHandler = (req: Request, res: Response, next: NextFunction) 
 // General Error Handler
 export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  if (req.path.startsWith('/api')) {
+
+  if (err.name === 'UnauthorizedError') {
+    // JWT authentication error
+    res.status(401).json({ error: 'Invalid or missing token' });
+  } else if (req.path.startsWith('/api')) {
     res.status(500).json({ error: 'Internal Server Error' });
   } else {
     res.status(500).sendFile(path.join(__dirname, 'build/500.html'));

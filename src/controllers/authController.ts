@@ -194,7 +194,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ userId: user.id }, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, type: user.type }, secretKey, { expiresIn: '1h' });
     res.json({ token });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

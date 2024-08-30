@@ -64,11 +64,11 @@ model Message {
   text           String
   sentBy         Int
   recepientType  String
-  sentTo         Int
+  sentTo         Int?      
   readByReciever Boolean  @default(false)
   timestamp      DateTime @default(now())
   sender         User     @relation("SentMessages", fields: [sentBy], references: [id])
-  reciever       User     @relation("ReceivedMessages", fields: [sentTo], references: [id])
+  reciever       User?     @relation("ReceivedMessages", fields: [sentTo], references: [id])
 
   @@index([timestamp])
 }

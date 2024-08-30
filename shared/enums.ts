@@ -14,3 +14,9 @@ export enum TimeSlots {
   SLOT_14_18 = '14:00-18:00',
   SLOT_10_18 = '10:00-18:00',
 }
+
+export enum UserTypes {
+  ADMIN = "admin",
+  INTERNAL = "internal",
+  EXTERNAL = "external"
+}
