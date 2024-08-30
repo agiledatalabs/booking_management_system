@@ -6,7 +6,69 @@ import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const secretKey = process.env.SECRET_KEY || 'agiledatalabs'; // Use a secure key and store it in environment variables
 
-// User registration
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: john.doe@example.com
+ *               mobile:
+ *                 type: string
+ *                 example: "1234567890"
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *               type:
+ *                 type: string
+ *                 example: user
+ *             required:
+ *               - name
+ *               - email
+ *               - mobile
+ *               - password
+ *               - type
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: User registered
+ *       400:
+ *         description: Bad request, missing or empty fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: All fields are required and must not be empty
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Error hashing password
+ */
 export const register = async (req: Request, res: Response) => {
   const { name, email, mobile, password, type } = req.body;
   // Check if any field is blank
@@ -28,7 +90,7 @@ export const register = async (req: Request, res: Response) => {
       data: {
         name,
         email,
-        mobile,
+        mobile: parseInt(mobile, 10), // Ensure mobile is an integer
         password: hashedPassword,
         type,
       },
@@ -49,8 +111,70 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-
-// User login
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       400:
+ *         description: Bad request, missing or empty fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Email and password are required and must not be empty
+ *       401:
+ *         description: Unauthorized, invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid email or password
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: An unexpected error occurred
+ */
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
