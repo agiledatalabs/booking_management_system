@@ -14,11 +14,13 @@ app.post('/register', register);
 describe('POST /register', () => {
   beforeAll(async () => {
     // Setup: Clear the database or create necessary test data
+    await prisma.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
     await prisma.user.deleteMany({});
   });
 
   afterAll(async () => {
     // Cleanup: Close the Prisma Client connection
+    await prisma.user.deleteMany({});
     await prisma.$disconnect();
   });
 
@@ -30,7 +32,7 @@ describe('POST /register', () => {
         email: 'john.doe@example.com',
         mobile: 1234567890, // Ensure this is an integer
         password: 'password123',
-        type: 'user'
+        type: 'internal'
       });
 
     expect(response.status).toBe(201);
@@ -46,15 +48,15 @@ describe('POST /register', () => {
 
   it('should not accept blank or null fields', async () => {
     const testCases = [
-      { name: '', email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: '', mobile: 1234567890, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: 'john.doe@example.com', mobile: 0, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: '', type: 'user' },
+      { name: '', email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: 'internal' },
+      { name: 'John Doe', email: '', mobile: 1234567890, password: 'password123', type: 'external' },
+      { name: 'John Doe', email: 'john.doe@example.com', mobile: 0, password: 'password123', type: 'admin' },
+      { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: '', type: null },
       { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: '' },
-      { name: null, email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: null, mobile: 1234567890, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: 'john.doe@example.com', mobile: null, password: 'password123', type: 'user' },
-      { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: null, type: 'user' },
+      { name: null, email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: 'admin' },
+      { name: 'John Doe', email: null, mobile: 1234567890, password: 'password123', type: 'internal' },
+      { name: 'John Doe', email: 'john.doe@example.com', mobile: null, password: 'password123', type: 'external' },
+      { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: null, type: 'admin' },
       { name: 'John Doe', email: 'john.doe@example.com', mobile: 1234567890, password: 'password123', type: null }
     ];
 
@@ -83,7 +85,7 @@ describe('POST /login', () => {
         email: 'john.doe@example.com',
         mobile: 1234567890,
         password: hashedPassword,
-        type: 'user',
+        type: 'internal',
       },
     });
   });
@@ -104,7 +106,7 @@ describe('POST /login', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('token');
     const decoded = jwt.verify(response.body.token, process.env.SECRET_KEY || 'agiledatalabs');
-    expect(decoded).toHaveProperty('userId');
+    expect(decoded).toHaveProperty('id');
   });
 
   it('should return 400 if email or password is missing', async () => {

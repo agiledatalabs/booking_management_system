@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { UserTypes } from '@/shared/enums';
 
 const prisma = new PrismaClient();
 const secretKey = process.env.SECRET_KEY || 'agiledatalabs'; // Use a secure key and store it in environment variables
@@ -58,6 +59,16 @@ const secretKey = process.env.SECRET_KEY || 'agiledatalabs'; // Use a secure key
  *                 error:
  *                   type: string
  *                   example: All fields are required and must not be empty
+ *       409:
+ *         description: Conflict, email or mobile already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Email or mobile already exists
  *       500:
  *         description: Internal server error
  *         content:
@@ -76,6 +87,11 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'All fields are required and must not be empty' });
   }
 
+  // Check if type is one of UserTypes
+  if (!Object.values(UserTypes).includes(type)) {
+    return res.status(400).json({ error: 'Invalid user type' });
+  }
+    
   let hashedPassword: string;
   try {
     // Hash the password

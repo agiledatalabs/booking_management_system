@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { getTimeSlots } from '../../shared/utils';
-import { BookingType } from '../../shared/enums';
+import { getTimeSlots } from '@/shared/utils';
+import { BookingType } from '@/shared/enums';
 
 const prisma = new PrismaClient();
 const blockedOrders: { [key: string]: { userId: string, resourceQty: number, timeout: NodeJS.Timeout }[] } = {};

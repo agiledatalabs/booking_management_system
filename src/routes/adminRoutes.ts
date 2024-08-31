@@ -11,7 +11,7 @@ router.put('/deactivateUser/:id', deactivateUser);
 
 // Messages related
 router.get('/message/getUnread', getAdminUnreadMessages);
-router.get('/message/getMessages/:userIdY', getUserMessages);
+router.get('/message/getMessages/:userId', getUserMessages);
 router.post("/message/reply", adminReplyMessage)
 
 export default router

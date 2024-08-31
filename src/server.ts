@@ -11,7 +11,7 @@ import messageRoutes from './routes/messageRoutes';
 import adminRoutes from './routes/adminRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swaggerConfig';
-import { authenticateToken } from './middleware/auth';
+import { authenticateToken, checkAdmin } from './middleware/auth';
 import { apiErrorHandler, uiErrorHandler, globalErrorHandler } from './errorHandlers';
 
 const app = express();
@@ -47,7 +47,7 @@ app.use(authenticateToken.unless({
 }));
 
 // Admin routes
-app.use('/api/admin', adminRoutes)
+app.use('/api/admin', checkAdmin, adminRoutes)
 
 // api docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -78,3 +78,5 @@ app.use(globalErrorHandler);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+export default app;

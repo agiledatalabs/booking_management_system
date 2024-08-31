@@ -1,9 +1,10 @@
 import express from 'express';
-import { sendMessage, getMessages } from '../controllers/messageController';
+import { sendMessage, getMessages, markMessageAsRead } from '../controllers/messageController';
 
 const router = express.Router();
 
-router.post('/sendMessage', sendMessage);
+router.post('/message/sendMessage', sendMessage);
 router.get('/message/getMessages', getMessages);
+router.get('message/markRead/:messageId', markMessageAsRead);
 
 export default router;

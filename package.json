@@ -14,7 +14,7 @@
     "full-dev": "concurrently \"nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts\" \"npm run start --prefix frontend\"",
     "be-dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "fe-dev": "npm run start --prefix frontend",
-    "test": "jest",
+    "test": "jest --runInBand",
     "postinstall": "npx prisma generate"
   },
   "keywords": [],
@@ -29,6 +29,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-jwt": "^8.4.1",
+    "jest-mock-extended": "^3.0.7",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.18.0",
     "react": "^18.3.1",

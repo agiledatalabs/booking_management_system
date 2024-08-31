@@ -11,7 +11,7 @@ model User {
   id               Int       @id @default(autoincrement())
   name             String
   email            String    @unique
-  mobile           Int       @unique
+  mobile           BigInt       @unique
   type             String //Admin, Internal, External
   active           Boolean   @default(true)
   password         String // Hashed password
@@ -63,7 +63,7 @@ model Message {
   id             Int      @id @default(autoincrement())
   text           String
   sentBy         Int
-  recepientType  String
+  recepientType  String?
   sentTo         Int?      
   readByReciever Boolean  @default(false)
   timestamp      DateTime @default(now())

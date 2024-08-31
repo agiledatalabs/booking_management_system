@@ -94,6 +94,17 @@ export const getResourceTypes = async (req: Request, res: Response) => {
 export const addResourceType = async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
+
+    // Check for blank or null input
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Name is required and must not be empty' });
+    }
+
+    // Basic sanity check: Ensure name is a string and has a reasonable length
+    if (name.length < 3 || name.length > 50) {
+      return res.status(400).json({ error: 'Name must be between 3 and 50 characters long' });
+    }
+
     const newResourceType = await prisma.resourceType.create({
       data: { name },
     });
@@ -228,8 +239,14 @@ export const editResourceType = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ error: 'Name is required to update the resource type.' });
+  // Check for blank or null input
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    return res.status(400).json({ error: 'Name is required and must not be empty' });
+  }
+
+  // Basic sanity check: Ensure name is a string and has a reasonable length
+  if (name.length < 3 || name.length > 50) {
+    return res.status(400).json({ error: 'Name must be between 3 and 50 characters long' });
   }
 
   try {
