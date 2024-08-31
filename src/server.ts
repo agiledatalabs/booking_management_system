@@ -3,16 +3,12 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import path from 'path';
-import resourceRoutes from './routes/resourceRoutes';
-import orderRoutes from './routes/orderRoutes';
-import userRoutes from './routes/userRoutes';
-import authRoutes from './routes/authRoutes';
-import messageRoutes from './routes/messageRoutes';
-import adminRoutes from './routes/adminRoutes';
+import routes from '@/routes/routes';
+import adminRoutes from '@/routes/adminRoutes';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swaggerConfig';
+import swaggerSpec from '@/swaggerConfig';
 import { authenticateToken, checkAdmin } from './middleware/auth';
-import { apiErrorHandler, uiErrorHandler, globalErrorHandler } from './errorHandlers';
+import { apiErrorHandler, uiErrorHandler, globalErrorHandler } from './middleware/errorHandlers';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -46,18 +42,14 @@ app.use(authenticateToken.unless({
   ]
 }));
 
-// Admin routes
-app.use('/api/admin', checkAdmin, adminRoutes)
-
 // api docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Admin routes
+app.use('/api/admin', checkAdmin, adminRoutes)
+
 // API routes
-app.use('/api', authRoutes)
-app.use('/api', resourceRoutes);
-app.use('/api', orderRoutes);
-app.use('/api', userRoutes);
-app.use('/api', messageRoutes);
+app.use('/api', routes)
 
 // Error handling
 app.use('/api', apiErrorHandler);
