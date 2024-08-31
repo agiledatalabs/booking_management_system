@@ -1,7 +1,13 @@
 import express from 'express';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
-import { addResource, getResources, editResource, updateResourceStatus, deleteResource } from '@/controllers/resourceController';
+import {
+  addResource,
+  getResources,
+  editResource,
+  updateResourceStatus,
+  deleteResource,
+} from '@/controllers/resourceController';
 import { BookingType } from '@/shared/enums';
 
 const prisma = new PrismaClient();
@@ -41,17 +47,15 @@ describe('Resource Controller', () => {
     });
 
     it('should create a new resource', async () => {
-      const response = await request(app)
-        .post('/resources')
-        .send({
-          name: 'NewResource',
-          resourceTypeId,
-          maxQty: 10,
-          priceInternal: 100,
-          priceExternal: 150,
-          bookingType: BookingType.TWO_HOUR,
-          active: true,
-        });
+      const response = await request(app).post('/resources').send({
+        name: 'NewResource',
+        resourceTypeId,
+        maxQty: 10,
+        priceInternal: 100,
+        priceExternal: 150,
+        bookingType: BookingType.TWO_HOUR,
+        active: true,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('name', 'NewResource');
@@ -65,26 +69,22 @@ describe('Resource Controller', () => {
     });
 
     it('should return 400 if required fields are missing', async () => {
-      const response = await request(app)
-        .post('/resources')
-        .send({});
+      const response = await request(app).post('/resources').send({});
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain(' is required');
     });
 
     it('should return 400 if bookingType is invalid', async () => {
-      const response = await request(app)
-        .post('/resources')
-        .send({
-          name: 'InvalidResource',
-          resourceTypeId,
-          maxQty: 10,
-          priceInternal: 100,
-          priceExternal: 150,
-          bookingType: 'INVALID',
-          active: true,
-        });
+      const response = await request(app).post('/resources').send({
+        name: 'InvalidResource',
+        resourceTypeId,
+        maxQty: 10,
+        priceInternal: 100,
+        priceExternal: 150,
+        bookingType: 'INVALID',
+        active: true,
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain('Invalid bookingType');
@@ -143,9 +143,7 @@ describe('Resource Controller', () => {
     });
 
     it('should return 400 if resourceTypeId is missing', async () => {
-      const response = await request(app)
-        .get('/resources')
-        .query({});
+      const response = await request(app).get('/resources').query({});
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('resourceTypeId cannot be blank');
@@ -201,7 +199,9 @@ describe('Resource Controller', () => {
         .send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('At least one field is required to update the resource.');
+      expect(response.body.error).toBe(
+        'At least one field is required to update the resource.'
+      );
     });
 
     it('should return 404 if resource not found', async () => {
@@ -295,8 +295,7 @@ describe('Resource Controller', () => {
     });
 
     it('should delete a resource', async () => {
-      const response = await request(app)
-        .delete(`/resources/${resourceId}`);
+      const response = await request(app).delete(`/resources/${resourceId}`);
 
       expect(response.status).toBe(204);
 
@@ -308,8 +307,7 @@ describe('Resource Controller', () => {
     });
 
     it('should return 404 if resource not found', async () => {
-      const response = await request(app)
-        .delete('/resources/99999');
+      const response = await request(app).delete('/resources/99999');
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Resource not found');

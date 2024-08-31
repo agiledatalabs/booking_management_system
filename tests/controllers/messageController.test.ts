@@ -1,29 +1,38 @@
 import request from 'supertest';
 import express from 'express';
 import { PrismaClient, User } from '@prisma/client';
-import { sendMessage, adminReplyMessage, getMessages, getAdminUnreadMessages, getUserMessages, markMessageAsRead } from '@/controllers/messageController';
+import {
+  sendMessage,
+  adminReplyMessage,
+  getMessages,
+  getAdminUnreadMessages,
+  getUserMessages,
+  markMessageAsRead,
+} from '@/controllers/messageController';
 import { users, user_messages, admin_messages } from '../fixtures';
 import jwt from 'jsonwebtoken';
-import {authenticateToken, checkAdmin} from "@/middleware/auth"
-import {setUserMiddleware} from '../utils/middleware'
+import { authenticateToken, checkAdmin } from '@/middleware/auth';
+import { setUserMiddleware } from '../utils/middleware';
 const prisma = new PrismaClient();
 const app = express();
 
 app.use(express.json());
-app.use(setUserMiddleware)
+app.use(setUserMiddleware);
 // app.use(authenticateToken);
-app.use("/admin", checkAdmin)
+app.use('/admin', checkAdmin);
 app.post('/api/sendMessage', sendMessage);
-app.post('/admin/messages/reply',adminReplyMessage);
+app.post('/admin/messages/reply', adminReplyMessage);
 app.get('/messages', getMessages);
 app.get('/admin/messages/getUnread', getAdminUnreadMessages);
 app.get('/admin/messages/getMessages/:userId', getUserMessages);
 app.put('/api/message/markRead/:messageId', markMessageAsRead);
 
-const secret = process.env.JWT_SECRET || "agiledatalabs"
+const secret = process.env.JWT_SECRET || 'agiledatalabs';
 
 const generateToken = (user: Partial<User>) => {
-  return jwt.sign({id: user.id, type: user.type}, secret, { expiresIn: '1h' });
+  return jwt.sign({ id: user.id, type: user.type }, secret, {
+    expiresIn: '1h',
+  });
 };
 
 describe('Message Controller', () => {
@@ -42,7 +51,7 @@ describe('Message Controller', () => {
 
     // Create test messages
     await prisma.message.createMany({
-      data: [...user_messages, ...admin_messages,]
+      data: [...user_messages, ...admin_messages],
     });
   });
 
@@ -78,7 +87,9 @@ describe('Message Controller', () => {
         .send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Text is required and cannot be null, empty, or undefined.');
+      expect(response.body.error).toBe(
+        'Text is required and cannot be null, empty, or undefined.'
+      );
     });
   });
 
@@ -117,7 +128,9 @@ describe('Message Controller', () => {
         .send({ text: 'Reply Message' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.');
+      expect(response.body.error).toBe(
+        'Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.'
+      );
     });
   });
 
@@ -125,7 +138,7 @@ describe('Message Controller', () => {
     it('should return a list of messages for the current user', async () => {
       const response = await request(app)
         .get('/messages')
-        .set('user', JSON.stringify({ id: 2, type: 'external' }))
+        .set('user', JSON.stringify({ id: 2, type: 'external' }));
 
       expect(response.status).toBe(200);
       expect(response.body.length).toBeGreaterThan(0);
@@ -137,7 +150,7 @@ describe('Message Controller', () => {
     it('should return a list of unread messages for admin', async () => {
       const response = await request(app)
         .get('/admin/messages/getUnread')
-        .set('user', JSON.stringify({ id: 1, type: 'admin' }))
+        .set('user', JSON.stringify({ id: 1, type: 'admin' }));
 
       expect(response.status).toBe(200);
       expect(response.body.data.length).toBeGreaterThan(0);
@@ -149,7 +162,7 @@ describe('Message Controller', () => {
     it('should return a list of messages for a specific user', async () => {
       const response = await request(app)
         .get('/admin/messages/getMessages/2')
-        .set('user', JSON.stringify({ id: 1, type: 'admin' }))
+        .set('user', JSON.stringify({ id: 1, type: 'admin' }));
 
       expect(response.status).toBe(200);
       expect(response.body.length).toBeGreaterThan(0);
@@ -165,7 +178,7 @@ describe('Message Controller', () => {
 
       const response = await request(app)
         .put(`/api/message/markRead/${message.id}`)
-        .set('user', JSON.stringify({ id: 2, type: 'external' }))
+        .set('user', JSON.stringify({ id: 2, type: 'external' }));
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Message marked as read');
@@ -180,7 +193,7 @@ describe('Message Controller', () => {
     it('should return 404 if messageId is invalid', async () => {
       const response = await request(app)
         .put('/api/message/markRead/99999')
-        .set('user', JSON.stringify({ id: 2, type: 'external' }))
+        .set('user', JSON.stringify({ id: 2, type: 'external' }));
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Message not found');

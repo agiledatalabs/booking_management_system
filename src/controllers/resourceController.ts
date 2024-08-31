@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { validateRequiredFields } from '@/shared/utils'
+import { validateRequiredFields } from '@/shared/utils';
 import { BookingType } from '@/shared/enums';
 
 const prisma = new PrismaClient();
@@ -128,18 +128,35 @@ const prisma = new PrismaClient();
  */
 export const addResource = async (req: Request, res: Response) => {
   try {
-    const requiredFields = ['name', 'resourceTypeId', 'priceInternal', 'priceExternal', 'bookingType'];
+    const requiredFields = [
+      'name',
+      'resourceTypeId',
+      'priceInternal',
+      'priceExternal',
+      'bookingType',
+    ];
     const validationError = validateRequiredFields(req.body, requiredFields);
 
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
 
-    const { name, resourceTypeId, maxQty, priceInternal, priceExternal, bookingType, active } = req.body;
+    const {
+      name,
+      resourceTypeId,
+      maxQty,
+      priceInternal,
+      priceExternal,
+      bookingType,
+      active,
+    } = req.body;
 
     // Validate bookingType
     if (!Object.values(BookingType).includes(bookingType)) {
-      return res.status(400).json({ error: 'Invalid bookingType. Choose one of: ' + Object.values(BookingType) });
+      return res.status(400).json({
+        error:
+          'Invalid bookingType. Choose one of: ' + Object.values(BookingType),
+      });
     }
 
     const newResource = await prisma.resource.create({
@@ -162,7 +179,10 @@ export const addResource = async (req: Request, res: Response) => {
         return res.status(409).json({ error: 'Resource already exists' });
       }
       if (error.code === 'P2003') {
-        return res.status(400).json({ error: 'Invalid resourceTypeId. The specified resource type does not exist.' });
+        return res.status(400).json({
+          error:
+            'Invalid resourceTypeId. The specified resource type does not exist.',
+        });
       }
     }
     res.status(500).json({ error: (error as Error).message });
@@ -226,7 +246,11 @@ export const getResources = async (req: Request, res: Response) => {
   const { resourceTypeId } = req.query;
 
   // Validate resourceTypeId
-  if (resourceTypeId == null || typeof resourceTypeId !== 'string' || resourceTypeId.trim() === '') {
+  if (
+    resourceTypeId == null ||
+    typeof resourceTypeId !== 'string' ||
+    resourceTypeId.trim() === ''
+  ) {
     return res.status(400).json({ error: 'resourceTypeId cannot be blank' });
   }
 
@@ -248,14 +272,15 @@ export const getResources = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
-        return res.status(400).json({ error: 'Argument `resourceTypeId` is missing or invalid.' });
+        return res
+          .status(400)
+          .json({ error: 'Argument `resourceTypeId` is missing or invalid.' });
       }
     } else {
       res.status(500).json({ error: (error as Error).message });
     }
   }
 };
-
 
 /**
  * @swagger
@@ -352,7 +377,6 @@ export const getResources = async (req: Request, res: Response) => {
  *                   description: Error message
  */
 
-
 export const editResource = async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
@@ -374,14 +398,17 @@ export const editResource = async (req: Request, res: Response) => {
     !bookingType &&
     active === undefined
   ) {
-    return res.status(400).json({ error: 'At least one field is required to update the resource.' });
+    return res.status(400).json({
+      error: 'At least one field is required to update the resource.',
+    });
   }
 
   try {
     const data: Prisma.ResourceUpdateInput = {};
 
     if (name !== undefined) data.name = name;
-    if (resourceTypeId !== undefined) data.resourceType = { connect: { id: Number(resourceTypeId) } };
+    if (resourceTypeId !== undefined)
+      data.resourceType = { connect: { id: Number(resourceTypeId) } };
     if (maxQty !== undefined) data.maxQty = Number(maxQty);
     if (priceInternal !== undefined) data.priceInternal = Number(priceInternal);
     if (priceExternal !== undefined) data.priceExternal = Number(priceExternal);

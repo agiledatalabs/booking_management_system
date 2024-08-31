@@ -29,20 +29,20 @@ export const user_messages = [
   {
     text: 'Hello, from User',
     sentBy: 2,
-    recepientType: "admin",
+    recepientType: 'admin',
   },
   {
     text: 'User wants to chat',
     sentBy: 3,
-    recepientType: "admin",
+    recepientType: 'admin',
   },
-]
+];
 
 export const admin_messages = [
   {
     text: 'Hi, from Admin',
     sentTo: 2,
-    sentBy: 1
+    sentBy: 1,
   },
   {
     text: 'Admin Approves!!!',
@@ -52,7 +52,7 @@ export const admin_messages = [
   {
     text: 'Hi, from Admin',
     sentTo: 3,
-    sentBy: 1
+    sentBy: 1,
   },
   {
     text: 'Admin Approves!!!',

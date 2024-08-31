@@ -97,12 +97,16 @@ export const addResourceType = async (req: Request, res: Response) => {
 
     // Check for blank or null input
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      return res.status(400).json({ error: 'Name is required and must not be empty' });
+      return res
+        .status(400)
+        .json({ error: 'Name is required and must not be empty' });
     }
 
     // Basic sanity check: Ensure name is a string and has a reasonable length
     if (name.length < 3 || name.length > 50) {
-      return res.status(400).json({ error: 'Name must be between 3 and 50 characters long' });
+      return res
+        .status(400)
+        .json({ error: 'Name must be between 3 and 50 characters long' });
     }
 
     const newResourceType = await prisma.resourceType.create({
@@ -110,9 +114,14 @@ export const addResourceType = async (req: Request, res: Response) => {
     });
     res.status(201).json(newResourceType);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
       // Unique constraint violation
-      res.status(400).json({ error: 'A resource type with this name already exists' });
+      res
+        .status(400)
+        .json({ error: 'A resource type with this name already exists' });
     } else {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -173,7 +182,7 @@ export const addResourceType = async (req: Request, res: Response) => {
  */
 export const deleteResourceType = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { forceDelete } = req.query
+  const { forceDelete } = req.query;
   try {
     if (forceDelete === 'true') {
       // Delete associated resources first
@@ -191,7 +200,10 @@ export const deleteResourceType = async (req: Request, res: Response) => {
         return res.status(404).json({ error: 'Resource type not found.' });
       }
       if (error.code === 'P2003') {
-        return res.status(400).json({ error: 'Cannot delete resource type as it is associated with existing resources.' });
+        return res.status(400).json({
+          error:
+            'Cannot delete resource type as it is associated with existing resources.',
+        });
       }
     }
     res.status(500).json({ error: (error as Error).message });
@@ -262,12 +274,16 @@ export const editResourceType = async (req: Request, res: Response) => {
 
   // Check for blank or null input
   if (!name || typeof name !== 'string' || name.trim() === '') {
-    return res.status(400).json({ error: 'Name is required and must not be empty' });
+    return res
+      .status(400)
+      .json({ error: 'Name is required and must not be empty' });
   }
 
   // Basic sanity check: Ensure name is a string and has a reasonable length
   if (name.length < 3 || name.length > 50) {
-    return res.status(400).json({ error: 'Name must be between 3 and 50 characters long' });
+    return res
+      .status(400)
+      .json({ error: 'Name must be between 3 and 50 characters long' });
   }
 
   try {

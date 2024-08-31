@@ -1,7 +1,12 @@
 import express from 'express';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
-import { getResourceTypes, addResourceType, deleteResourceType, editResourceType } from '@/controllers/resourceTypeController';
+import {
+  getResourceTypes,
+  addResourceType,
+  deleteResourceType,
+  editResourceType,
+} from '@/controllers/resourceTypeController';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -50,12 +55,12 @@ describe('ResourceType Controller', () => {
     });
 
     it('should return 400 if name is missing', async () => {
-      const response = await request(app)
-        .post('/resourceTypes')
-        .send({});
+      const response = await request(app).post('/resourceTypes').send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Name is required and must not be empty');
+      expect(response.body.error).toBe(
+        'Name is required and must not be empty'
+      );
     });
 
     it('should return 400 if resource type with the same name already exists', async () => {
@@ -64,7 +69,9 @@ describe('ResourceType Controller', () => {
         .send({ name: 'ExistingType' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('A resource type with this name already exists');
+      expect(response.body.error).toBe(
+        'A resource type with this name already exists'
+      );
     });
   });
 
@@ -105,7 +112,9 @@ describe('ResourceType Controller', () => {
         .send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Name is required and must not be empty');
+      expect(response.body.error).toBe(
+        'Name is required and must not be empty'
+      );
     });
 
     it('should return 404 if resource type not found', async () => {
@@ -131,8 +140,9 @@ describe('ResourceType Controller', () => {
     });
 
     it('should delete a resource type', async () => {
-      const response = await request(app)
-        .delete(`/resourceTypes/${resourceTypeId}`);
+      const response = await request(app).delete(
+        `/resourceTypes/${resourceTypeId}`
+      );
 
       expect(response.status).toBe(204);
 
@@ -144,8 +154,7 @@ describe('ResourceType Controller', () => {
     });
 
     it('should return 404 if resource type not found', async () => {
-      const response = await request(app)
-        .delete('/resourceTypes/99999');
+      const response = await request(app).delete('/resourceTypes/99999');
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Resource type not found.');
@@ -157,16 +166,12 @@ describe('ResourceType Controller', () => {
       // Setup: Clear the database and create resource types
       await prisma.resourceType.deleteMany({});
       await prisma.resourceType.createMany({
-        data: [
-          { name: 'Type1' },
-          { name: 'Type2' },
-        ],
+        data: [{ name: 'Type1' }, { name: 'Type2' }],
       });
     });
 
     it('should retrieve all resource types', async () => {
-      const response = await request(app)
-        .get('/resourceTypes');
+      const response = await request(app).get('/resourceTypes');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(2);

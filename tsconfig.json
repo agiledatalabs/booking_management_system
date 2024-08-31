@@ -10,7 +10,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./src", // Add this line
-    "paths": { // Add this block
+    "paths": {
+      // Add this block
       "@/*": ["./*"]
     }
   },

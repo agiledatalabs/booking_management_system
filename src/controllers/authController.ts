@@ -83,26 +83,39 @@ const secretKey = process.env.SECRET_KEY || 'agiledatalabs'; // Use a secure key
 export const register = async (req: Request, res: Response) => {
   const { name, email, mobile, password, type } = req.body;
   // Check if any field is blank
-  if (!name || !email || !mobile || !password || !type || name.trim() === '' || email.trim() === '' || password.trim() === '' || type.trim() === '') {
-    return res.status(400).json({ error: 'All fields are required and must not be empty' });
+  if (
+    !name ||
+    !email ||
+    !mobile ||
+    !password ||
+    !type ||
+    name.trim() === '' ||
+    email.trim() === '' ||
+    password.trim() === '' ||
+    type.trim() === ''
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'All fields are required and must not be empty' });
   }
 
   // Check if type is one of UserTypes
   if (!Object.values(UserTypes).includes(type)) {
     return res.status(400).json({ error: 'Invalid user type' });
   }
-    
+
   let hashedPassword: string;
   try {
     // Hash the password
     hashedPassword = await bcrypt.hash(password, 10);
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: 'Error hashing password' });
   }
 
   try {
     // Create the user in the database
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name,
         email,
@@ -117,7 +130,9 @@ export const register = async (req: Request, res: Response) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Handle known Prisma errors
       if (error.code === 'P2002') {
-        return res.status(409).json({ error: 'Email or mobile already exists' });
+        return res
+          .status(409)
+          .json({ error: 'Email or mobile already exists' });
       }
       return res.status(500).json({ error: 'Database error' });
     } else {
@@ -196,7 +211,9 @@ export const login = async (req: Request, res: Response) => {
 
   // Check if email or password is blank or an empty string
   if (!email || !password || email.trim() === '' || password.trim() === '') {
-    return res.status(400).json({ error: 'Email and password are required and must not be empty' });
+    return res
+      .status(400)
+      .json({ error: 'Email and password are required and must not be empty' });
   }
 
   try {
@@ -210,7 +227,9 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ id: user.id, type: user.type }, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, type: user.type }, secretKey, {
+      expiresIn: '1h',
+    });
     res.json({ token });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

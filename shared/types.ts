@@ -7,11 +7,6 @@ export const BookingTypeTimeSlots = {
     TimeSlots.SLOT_14_16,
     TimeSlots.SLOT_16_18,
   ],
-  [BookingType.HALF_DAY]: [
-    TimeSlots.SLOT_10_14,
-    TimeSlots.SLOT_14_18,
-  ],
-  [BookingType.FULL_DAY]: [
-    TimeSlots.SLOT_10_18,
-  ],
+  [BookingType.HALF_DAY]: [TimeSlots.SLOT_10_14, TimeSlots.SLOT_14_18],
+  [BookingType.FULL_DAY]: [TimeSlots.SLOT_10_18],
 };

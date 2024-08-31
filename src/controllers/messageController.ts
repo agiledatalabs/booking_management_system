@@ -74,7 +74,9 @@ export const sendMessage = async (req: Request, res: Response) => {
 
     // Validate input
     if (text === null || text === '' || text === undefined) {
-      return res.status(400).json({ error: 'Text is required and cannot be null, empty, or undefined.' });
+      return res.status(400).json({
+        error: 'Text is required and cannot be null, empty, or undefined.',
+      });
     }
 
     const message = await prisma.message.create({
@@ -131,10 +133,7 @@ export const getMessages = async (req: Request, res: Response) => {
 
     const messages = await prisma.message.findMany({
       where: {
-        OR: [
-          { sentBy: Number(userId) },
-          { sentTo: Number(userId) },
-        ],
+        OR: [{ sentBy: Number(userId) }, { sentTo: Number(userId) }],
       },
       include: {
         sender: {
@@ -217,9 +216,14 @@ export const markMessageAsRead = async (req: Request, res: Response) => {
       data: { readByReciever: true },
     });
 
-    res.status(200).json({ message: 'Message marked as read', data: updatedMessage });
+    res
+      .status(200)
+      .json({ message: 'Message marked as read', data: updatedMessage });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
       // Record not found
       res.status(404).json({ error: 'Message not found' });
     } else {
@@ -228,7 +232,6 @@ export const markMessageAsRead = async (req: Request, res: Response) => {
     }
   }
 };
-
 
 /**
  * @swagger
@@ -269,7 +272,10 @@ export const adminReplyMessage = async (req: Request, res: Response) => {
 
     // Validate input
     if (!text || text.trim() === '' || sentTo == null || sentTo == undefined) {
-      return res.status(400).json({ error: 'Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.' });
+      return res.status(400).json({
+        error:
+          'Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.',
+      });
     }
 
     const message = await prisma.message.create({
@@ -431,10 +437,7 @@ export const getUserMessages = async (req: Request, res: Response) => {
 
     const conversation = await prisma.message.findMany({
       where: {
-        OR: [
-          { sentBy: Number(userId) },
-          { sentTo: Number(userId) },
-        ],
+        OR: [{ sentBy: Number(userId) }, { sentTo: Number(userId) }],
       },
       include: {
         sender: {

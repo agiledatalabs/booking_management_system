@@ -1,11 +1,11 @@
 {
-    "sqltools.useNodeRuntime": true,
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "name": "BMS",
-            "database": "${workspaceFolder:booking_management_system}/backend/prisma/dev.db"
-        }
-    ]
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "BMS",
+      "database": "${workspaceFolder:booking_management_system}/backend/prisma/dev.db"
+    }
+  ]
 }

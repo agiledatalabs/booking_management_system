@@ -5,13 +5,17 @@ interface ResourceTypeFormProps {
   onRequestClose: () => void;
 }
 
-const ResourceTypeForm: React.FC<ResourceTypeFormProps> = ({ onRequestClose }) => {
+const ResourceTypeForm: React.FC<ResourceTypeFormProps> = ({
+  onRequestClose,
+}) => {
   const [resourceTypeName, setResourceTypeName] = useState('');
 
   const handleAddResourceType = async () => {
     console.log('handleAddResourceType called'); // Log to check if function is called
     try {
-      const response = await axios.post('/api/resource-types', { name: resourceTypeName });
+      const response = await axios.post('/api/resource-types', {
+        name: resourceTypeName,
+      });
       console.log('Resource Type Added:', response.data);
       onRequestClose(); // Close the modal upon successful submission
     } catch (error) {
@@ -20,13 +24,20 @@ const ResourceTypeForm: React.FC<ResourceTypeFormProps> = ({ onRequestClose }) =
   };
 
   return (
-    <form onSubmit={(e) => { 
-      e.preventDefault(); 
-      console.log('Form submitted'); // Log to check if form submission is triggered
-      handleAddResourceType(); 
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        console.log('Form submitted'); // Log to check if form submission is triggered
+        handleAddResourceType();
+      }}
+    >
       <div className="mb-4">
-        <label htmlFor="resourceTypeName" className="block text-sm font-medium text-gray-700">Resource Type Name</label>
+        <label
+          htmlFor="resourceTypeName"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Resource Type Name
+        </label>
         <input
           type="text"
           id="resourceTypeName"
@@ -36,7 +47,10 @@ const ResourceTypeForm: React.FC<ResourceTypeFormProps> = ({ onRequestClose }) =
           required
         />
       </div>
-      <button type="submit" className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      <button
+        type="submit"
+        className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
         Add Resource Type
       </button>
     </form>

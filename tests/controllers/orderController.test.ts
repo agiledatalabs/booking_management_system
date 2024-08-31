@@ -12,8 +12,7 @@ app.post('/orders/blockOrder', blockOrder);
 app.post('/orders/confirmOrder', confirmOrder);
 
 describe('Order Controller', () => {
-  beforeAll(async () => {    
-    
+  beforeAll(async () => {
     // Setup: Clear the database or create necessary test data
     await prisma.order.deleteMany({});
     await prisma.resource.deleteMany({});
@@ -35,14 +34,20 @@ describe('Order Controller', () => {
     let resourceId: number;
     let resourceTypeId: number;
 
-    beforeAll(async () => {        
+    beforeAll(async () => {
       // Setup: Create a user and a resource type and resource
       await prisma.user.deleteMany({});
       await prisma.resource.deleteMany({});
       await prisma.resourceType.deleteMany({});
 
       const user = await prisma.user.create({
-        data: { name: 'TestUser', email: 'test@example.com', mobile: 1234567890, type: 'Internal', password: 'hashedpassword' },
+        data: {
+          name: 'TestUser',
+          email: 'test@example.com',
+          mobile: 1234567890,
+          type: 'Internal',
+          password: 'hashedpassword',
+        },
       });
       userId = user.id;
 
@@ -66,74 +71,71 @@ describe('Order Controller', () => {
     });
 
     it('should block an order', async () => {
-      const response = await request(app)
-        .post('/orders/blockOrder')
-        .send({
-          userId,
-          resourceId,
-          bookingDate: '2023-10-10',
-          timeSlot: TimeSlots.SLOT_10_12,
-          resourceQty: 2,
-        });
+      const response = await request(app).post('/orders/blockOrder').send({
+        userId,
+        resourceId,
+        bookingDate: '2023-10-10',
+        timeSlot: TimeSlots.SLOT_10_12,
+        resourceQty: 2,
+      });
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('message', 'Resource blocked successfully.');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Resource blocked successfully.'
+      );
 
       // Verify the block was created in blockedOrders
     });
 
     it('should return 400 if required fields are missing', async () => {
-      const response = await request(app)
-        .post('/orders/blockOrder')
-        .send({});
+      const response = await request(app).post('/orders/blockOrder').send({});
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain('is required');
     });
 
     it('should return 400 if resource quantity is invalid', async () => {
-      const response = await request(app)
-        .post('/orders/blockOrder')
-        .send({
-          userId,
-          resourceId,
-          bookingDate: '2023-10-10',
-          timeSlot: TimeSlots.SLOT_10_12,
-          resourceQty: -1,
-        });
+      const response = await request(app).post('/orders/blockOrder').send({
+        userId,
+        resourceId,
+        bookingDate: '2023-10-10',
+        timeSlot: TimeSlots.SLOT_10_12,
+        resourceQty: -1,
+      });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Resource quantity should be greater than 0.');
+      expect(response.body.error).toBe(
+        'Resource quantity should be greater than 0.'
+      );
     });
 
     it('should return 404 if resource not found', async () => {
-      const response = await request(app)
-        .post('/orders/blockOrder')
-        .send({
-          userId,
-          resourceId: 99999,
-          bookingDate: '2023-10-10',
-          timeSlot: TimeSlots.SLOT_10_12,
-          resourceQty: 2,
-        });
+      const response = await request(app).post('/orders/blockOrder').send({
+        userId,
+        resourceId: 99999,
+        bookingDate: '2023-10-10',
+        timeSlot: TimeSlots.SLOT_10_12,
+        resourceQty: 2,
+      });
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Resource not found.');
     });
 
     it('should return 400 if time slot is invalid', async () => {
-      const response = await request(app)
-        .post('/orders/blockOrder')
-        .send({
-          userId,
-          resourceId,
-          bookingDate: '2023-10-10',
-          timeSlot: 'INVALID',
-          resourceQty: 2,
-        });
+      const response = await request(app).post('/orders/blockOrder').send({
+        userId,
+        resourceId,
+        bookingDate: '2023-10-10',
+        timeSlot: 'INVALID',
+        resourceQty: 2,
+      });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toContain('Invalid time slot for the selected booking type.');
+      expect(response.body.error).toContain(
+        'Invalid time slot for the selected booking type.'
+      );
     });
   });
 
@@ -143,14 +145,19 @@ describe('Order Controller', () => {
     let resourceTypeId: number;
 
     beforeAll(async () => {
-    
       // Setup: Create a user and a resource type and resource
       await prisma.user.deleteMany({});
       await prisma.resource.deleteMany({});
       await prisma.resourceType.deleteMany({});
 
       const user = await prisma.user.create({
-        data: { name: 'TestUser', email: 'test@example.com', mobile: 1234567890, type: 'Internal', password: 'hashedpassword' },
+        data: {
+          name: 'TestUser',
+          email: 'test@example.com',
+          mobile: 1234567890,
+          type: 'Internal',
+          password: 'hashedpassword',
+        },
       });
       userId = user.id;
 
@@ -173,33 +180,32 @@ describe('Order Controller', () => {
       resourceId = resource.id;
 
       // Block an order for the user
-      await request(app)
-        .post('/orders/blockOrder')
-        .send({
-          userId,
-          resourceId,
-          bookingDate: '2023-10-10',
-          timeSlot: TimeSlots.SLOT_10_12,
-          resourceQty: 2,
-        });
+      await request(app).post('/orders/blockOrder').send({
+        userId,
+        resourceId,
+        bookingDate: '2023-10-10',
+        timeSlot: TimeSlots.SLOT_10_12,
+        resourceQty: 2,
+      });
     });
 
     it('should confirm an order', async () => {
-      const response = await request(app)
-        .post('/orders/confirmOrder')
-        .send({
-          userId,
-          resourceId,
-          resourceQty: 2,
-          bookingDate: '2023-10-10',
-          amount: 200,
-          bookingType: BookingType.TWO_HOUR,
-          timeSlot: TimeSlots.SLOT_10_12,
-          mode: 'online',
-          transactionId: 'txn123',
-        });
+      const response = await request(app).post('/orders/confirmOrder').send({
+        userId,
+        resourceId,
+        resourceQty: 2,
+        bookingDate: '2023-10-10',
+        amount: 200,
+        bookingType: BookingType.TWO_HOUR,
+        timeSlot: TimeSlots.SLOT_10_12,
+        mode: 'online',
+        transactionId: 'txn123',
+      });
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('message', 'Order confirmed successfully.');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Order confirmed successfully.'
+      );
       expect(response.body.order).toHaveProperty('id');
 
       // Verify the order was created in the database
@@ -211,66 +217,58 @@ describe('Order Controller', () => {
     });
 
     it('should return 400 if required fields are missing', async () => {
-      const response = await request(app)
-        .post('/orders/confirmOrder')
-        .send({});
+      const response = await request(app).post('/orders/confirmOrder').send({});
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain('is required');
     });
 
     it('should return 400 if booking type is invalid', async () => {
-      const response = await request(app)
-        .post('/orders/confirmOrder')
-        .send({
-          userId,
-          resourceId,
-          resourceQty: 2,
-          bookingDate: '2023-10-10',
-          amount: 200,
-          bookingType: 'INVALID',
-          timeSlot: TimeSlots.SLOT_10_12,
-          mode: 'online',
-          transactionId: 'txn123',
-        });
+      const response = await request(app).post('/orders/confirmOrder').send({
+        userId,
+        resourceId,
+        resourceQty: 2,
+        bookingDate: '2023-10-10',
+        amount: 200,
+        bookingType: 'INVALID',
+        timeSlot: TimeSlots.SLOT_10_12,
+        mode: 'online',
+        transactionId: 'txn123',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid booking type.');
     });
 
     it('should return 400 if no block found for the given key', async () => {
-      const response = await request(app)
-        .post('/orders/confirmOrder')
-        .send({
-          userId,
-          resourceId,
-          resourceQty: 2,
-          bookingDate: '2023-10-11',
-          amount: 200,
-          bookingType: BookingType.TWO_HOUR,
-          timeSlot: TimeSlots.SLOT_10_12,
-          mode: 'online',
-          transactionId: 'txn123',
-        });
+      const response = await request(app).post('/orders/confirmOrder').send({
+        userId,
+        resourceId,
+        resourceQty: 2,
+        bookingDate: '2023-10-11',
+        amount: 200,
+        bookingType: BookingType.TWO_HOUR,
+        timeSlot: TimeSlots.SLOT_10_12,
+        mode: 'online',
+        transactionId: 'txn123',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('No block found for the given key.');
     });
 
     it('should return 400 if no block found for the given user', async () => {
-      const response = await request(app)
-        .post('/orders/confirmOrder')
-        .send({
-          userId: 99999,
-          resourceId,
-          resourceQty: 2,
-          bookingDate: '2023-10-10',
-          amount: 200,
-          bookingType: BookingType.TWO_HOUR,
-          timeSlot: TimeSlots.SLOT_10_12,
-          mode: 'online',
-          transactionId: 'txn123',
-        });
+      const response = await request(app).post('/orders/confirmOrder').send({
+        userId: 99999,
+        resourceId,
+        resourceQty: 2,
+        bookingDate: '2023-10-10',
+        amount: 200,
+        bookingType: BookingType.TWO_HOUR,
+        timeSlot: TimeSlots.SLOT_10_12,
+        mode: 'online',
+        transactionId: 'txn123',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('No block found for the given key.');

@@ -16,7 +16,7 @@ export enum TimeSlots {
 }
 
 export enum UserTypes {
-  ADMIN = "admin",
-  INTERNAL = "internal",
-  EXTERNAL = "external"
+  ADMIN = 'admin',
+  INTERNAL = 'internal',
+  EXTERNAL = 'external',
 }
