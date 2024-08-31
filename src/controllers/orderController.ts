@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { getTimeSlots } from '@/shared/utils';
+import { getTimeSlots, validateRequiredFields } from '@/shared/utils';
 import { BookingType } from '@/shared/enums';
+import { BlockedOrder } from '@/shared/interfaces';
 
 const prisma = new PrismaClient();
-const blockedOrders: { [key: string]: { userId: string, resourceQty: number, timeout: NodeJS.Timeout }[] } = {};
+
+// Define the type for block objects
+export const blockedOrders: { [key: string]: BlockedOrder[] } = {};
 
 // Function to generate blockKey
 const generateBlockKey = (userId: string, resourceId: string, bookingDate: string, timeSlot: string) => {
@@ -93,8 +96,15 @@ export const blockOrder = async (req: Request, res: Response) => {
 
   try {
     // Validate request
-    if (!userId || !resourceId || !bookingDate || !timeSlot || !resourceQty) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+    const validationError = validateRequiredFields({ userId, resourceId, bookingDate, timeSlot, resourceQty }, null)
+
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }  
+
+    // Ensure resourceQty is not negative
+    if (!(resourceQty > 0)) {
+      return res.status(400).json({ error: 'Resource quantity should be greater than 0.' });
     }
 
     // Fetch resource details
@@ -116,6 +126,23 @@ export const blockOrder = async (req: Request, res: Response) => {
       );
     }
 
+    const blockKey = generateBlockKey(userId, resourceId, bookingDate, timeSlot);
+    const blockedQty = blockedOrders[blockKey]?.reduce((total, block) => total + block.resourceQty, 0) || 0;
+
+    // Ensure the same user cannot hold more than one block
+    if (blockedOrders[blockKey]?.some(block => block.userId === userId)) {
+      const userBlock = blockedOrders[blockKey].find(block => block.userId === userId);
+      if (userBlock) {
+        const remainingTime = Math.max(0, userBlock.startTime.getTime() + userBlock.duration - Date.now());
+        return res.status(409).json({ 
+          error: 'User already has a block for the selected resource & time slot.', 
+          blockStartTime: userBlock.startTime,
+          blockEndTime: new Date(userBlock.startTime.getTime() + userBlock.duration),
+          remainingTime: remainingTime
+        });
+      }
+    }
+
     // Check resource availability
     const existingOrders = await prisma.order.findMany({
       where: {
@@ -127,39 +154,48 @@ export const blockOrder = async (req: Request, res: Response) => {
 
     const totalBookedQty = existingOrders.reduce((total, order) => total + order.resourceQty, 0);
 
-    const blockKey = generateBlockKey(userId, resourceId, bookingDate, timeSlot);
-    const blockedQty = blockedOrders[blockKey]?.reduce((total, block) => total + block.resourceQty, 0) || 0;
-
     if (totalBookedQty + blockedQty + resourceQty > resource.maxQty) {
       return res.status(400).json(
         { error: 'Not enough availability for the selected time slot.' 
           + "alreadyBooked: " + totalBookedQty + ", blocked: " + blockedQty
-          + "max: " + resource.maxQty
+          + ", max: " + resource.maxQty
         }
       );
     }
 
-    // Ensure the same user cannot hold more than one block
-    if (blockedOrders[blockKey]?.some(block => block.userId === userId)) {
-      return res.status(400).json({ error: 'User already has a block for the selected time slot.' });
+    // Ensure 1 user cannot block more than predefined orders
+    const userBlockCount = Object.values(blockedOrders).reduce((count, blocks) => {
+      return count + blocks.filter(block => block.userId === userId).length;
+    }, 0);
+
+    if (userBlockCount >= 5) {
+      return res.status(400).json({ error: 'You cannot block more than 5 resources.' });
     }
 
-    // Block the resource
-    const timeout = setTimeout(() => {
-      blockedOrders[blockKey] = blockedOrders[blockKey].filter(block => block.userId !== userId);
-      if (blockedOrders[blockKey].length === 0) {
-        delete blockedOrders[blockKey];
-      }
-    }, 5 * 60 * 1000); // 5 minutes timeout
+  // Block the resource
+  const blockStartTime = new Date();
+  const blockDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  const timeout = setTimeout(() => {
+    blockedOrders[blockKey] = blockedOrders[blockKey].filter(block => block.userId !== userId);
+    if (blockedOrders[blockKey].length === 0) {
+      delete blockedOrders[blockKey];
+    }
+  }, blockDuration); // 5 minutes timeout
+
 
     if (!blockedOrders[blockKey]) {
       blockedOrders[blockKey] = [];
     }
 
-    blockedOrders[blockKey].push({ userId, resourceQty, timeout });
+    blockedOrders[blockKey].push({ userId, resourceQty, timeout, startTime: blockStartTime, duration: blockDuration });
 
-    res.status(200).json({ message: 'Resource blocked successfully.' });
-  } catch (error) {
+    res.status(200).json({ 
+      message: 'Resource blocked successfully.', 
+      blockStartTime: blockStartTime,
+      blockEndTime: new Date(blockStartTime.getTime() + blockDuration)
+    });
+    } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 };
@@ -252,7 +288,20 @@ export const blockOrder = async (req: Request, res: Response) => {
  */
 export const confirmOrder = async (req: Request, res: Response) => {
   try {
+    const requiredFields = ['userId', 'resourceId', 'resourceQty', 'bookingDate', 'amount', 'bookingType', 'timeSlot', 'mode', 'transactionId'];
+    const validationError = validateRequiredFields(req.body, requiredFields);
+  
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+  
     const { userId, resourceId, resourceQty, bookingDate, amount, bookingType, timeSlot, mode, transactionId } = req.body;
+
+    // Check if bookingType is a valid enum value
+    if (!Object.values(BookingType).includes(bookingType)) {
+      return res.status(400).json({ error: 'Invalid booking type.' });
+    }
+
     const blockKey = generateBlockKey(userId, resourceId, bookingDate, timeSlot);
 
     if (!blockedOrders[blockKey]) {
@@ -264,6 +313,16 @@ export const confirmOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No block found for the given user.' });
     }
 
+    // Fetch the resource name based on the resourceId
+    const resource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+      select: { name: true },
+    });
+
+    if (!resource) {
+      return res.status(404).json({ error: 'Resource not found' });
+    }
+    
     // Confirm the order and save to the database
     const order = await prisma.order.create({
       data: {
@@ -272,6 +331,7 @@ export const confirmOrder = async (req: Request, res: Response) => {
         bookingDate: new Date(bookingDate),
         amount,
         resourceId,
+        resourceName: resource.name,
         resourceQty,
         bookingType,
         timeSlot,

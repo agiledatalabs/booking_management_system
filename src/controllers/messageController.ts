@@ -93,62 +93,6 @@ export const sendMessage = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * admin/messages/reply:
- *   post:
- *     summary: Reply to a message
- *     tags: [Messages]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - text
- *               - sentTo
- *             properties:
- *               text:
- *                 type: string
- *                 description: The content of the reply
- *               sentTo:
- *                 type: integer
- *                 description: The ID of the user who will receive the reply
- *     responses:
- *       201:
- *         description: The created reply message
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Message'
- *       500:
- *         description: Some server error
- */
-export const adminReplyMessage = async (req: Request, res: Response) => {
-  try {
-    const { text, sentTo } = req.body;
-    const sentBy = (req.user as User).id;
-
-    // Validate input
-    if (!text || text.trim() === '' || sentTo == null || sentTo == undefined) {
-      return res.status(400).json({ error: 'Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.' });
-    }
-
-    const message = await prisma.message.create({
-      data: {
-        text,
-        sentBy,
-        sentTo,
-      },
-    });
-
-    res.status(201).json(message);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-};
-
-/**
- * @swagger
  * /messages/getMessages:
  *   get:
  *     summary: Get messages for current user
@@ -212,6 +156,131 @@ export const getMessages = async (req: Request, res: Response) => {
     });
 
     res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+/**
+ * @swagger
+ * /api/message/markRead/{messageId}:
+ *   put:
+ *     summary: Mark a message as read
+ *     description: Marks a message as read by updating the readByReciever field to true.
+ *     tags:
+ *       - Messages
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the message to mark as read
+ *     responses:
+ *       200:
+ *         description: Message marked as read successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Message marked as read
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     readByReciever:
+ *                       type: boolean
+ *                       example: true
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Database error
+ */
+export const markMessageAsRead = async (req: Request, res: Response) => {
+  try {
+    const { messageId } = req.params;
+
+    // Update the message in the database
+    const updatedMessage = await prisma.message.update({
+      where: { id: Number(messageId) },
+      data: { readByReciever: true },
+    });
+
+    res.status(200).json({ message: 'Message marked as read', data: updatedMessage });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      // Record not found
+      res.status(404).json({ error: 'Message not found' });
+    } else {
+      // Other errors
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+};
+
+
+/**
+ * @swagger
+ * admin/messages/reply:
+ *   post:
+ *     summary: Reply to a message
+ *     tags: [Messages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *               - sentTo
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: The content of the reply
+ *               sentTo:
+ *                 type: integer
+ *                 description: The ID of the user who will receive the reply
+ *     responses:
+ *       201:
+ *         description: The created reply message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Message'
+ *       500:
+ *         description: Some server error
+ */
+export const adminReplyMessage = async (req: Request, res: Response) => {
+  try {
+    const { text, sentTo } = req.body;
+    const sentBy = (req.user as User).id;
+
+    // Validate input
+    if (!text || text.trim() === '' || sentTo == null || sentTo == undefined) {
+      return res.status(400).json({ error: 'Text is required and cannot be null, empty, or undefined. Recipient ID must be a valid number.' });
+    }
+
+    const message = await prisma.message.create({
+      data: {
+        text,
+        sentBy,
+        sentTo,
+      },
+    });
+
+    res.status(201).json(message);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
@@ -389,73 +458,5 @@ export const getUserMessages = async (req: Request, res: Response) => {
     res.status(200).json(conversation);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
-  }
-};
-
-/**
- * @swagger
- * /api/message/markRead/{messageId}:
- *   put:
- *     summary: Mark a message as read
- *     description: Marks a message as read by updating the readByReciever field to true.
- *     tags:
- *       - Messages
- *     parameters:
- *       - in: path
- *         name: messageId
- *         required: true
- *         schema:
- *           type: integer
- *         description: The ID of the message to mark as read
- *     responses:
- *       200:
- *         description: Message marked as read successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Message marked as read
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     readByReciever:
- *                       type: boolean
- *                       example: true
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Database error
- */
-export const markMessageAsRead = async (req: Request, res: Response) => {
-  try {
-    const { messageId } = req.params;
-
-    // Update the message in the database
-    const updatedMessage = await prisma.message.update({
-      where: { id: Number(messageId) },
-      data: { readByReciever: true },
-    });
-
-    res.status(200).json({ message: 'Message marked as read', data: updatedMessage });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      // Record not found
-      res.status(404).json({ error: 'Message not found' });
-    } else {
-      // Other errors
-      res.status(500).json({ error: (error as Error).message });
-    }
   }
 };

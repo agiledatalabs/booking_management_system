@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { validateRequiredFields } from '@/shared/utils'
+import { BookingType } from '@/shared/enums';
 
 const prisma = new PrismaClient();
 
@@ -103,6 +105,16 @@ const prisma = new PrismaClient();
  *                 error:
  *                   type: string
  *                   description: Error message
+ *       409:
+ *         description: Conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  *       500:
  *         description: Some server error
  *         content:
@@ -116,9 +128,20 @@ const prisma = new PrismaClient();
  */
 export const addResource = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
+    const requiredFields = ['name', 'resourceTypeId', 'priceInternal', 'priceExternal', 'bookingType'];
+    const validationError = validateRequiredFields(req.body, requiredFields);
+
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+
     const { name, resourceTypeId, maxQty, priceInternal, priceExternal, bookingType, active } = req.body;
-    // console.log(price_external, priceInternal);
+
+    // Validate bookingType
+    if (!Object.values(BookingType).includes(bookingType)) {
+      return res.status(400).json({ error: 'Invalid bookingType. Choose one of: ' + Object.values(BookingType) });
+    }
+
     const newResource = await prisma.resource.create({
       data: {
         name,
@@ -128,15 +151,21 @@ export const addResource = async (req: Request, res: Response) => {
         priceExternal,
         bookingType,
         active,
-        // resourceType: {
-        //   connect: { id: resourceTypeId },
-        // },
       },
     });
+
     res.status(201).json(newResource);
   } catch (error) {
-    console.log(error)
-    res.status(400).json({ error: (error as Error).message });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle known Prisma errors
+      if (error.code === 'P2002') {
+        return res.status(409).json({ error: 'Resource already exists' });
+      }
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'Invalid resourceTypeId. The specified resource type does not exist.' });
+      }
+    }
+    res.status(500).json({ error: (error as Error).message });
   }
 };
 
@@ -162,6 +191,16 @@ export const addResource = async (req: Request, res: Response) => {
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Resource'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  *       404:
  *         description: Resource not found
  *         content:
@@ -186,10 +225,19 @@ export const addResource = async (req: Request, res: Response) => {
 export const getResources = async (req: Request, res: Response) => {
   const { resourceTypeId } = req.query;
 
+  // Validate resourceTypeId
+  if (resourceTypeId == null || typeof resourceTypeId !== 'string' || resourceTypeId.trim() === '') {
+    return res.status(400).json({ error: 'resourceTypeId cannot be blank' });
+  }
+
   try {
     const resource = await prisma.resource.findMany({
       where: { resourceTypeId: Number(resourceTypeId) },
     });
+
+    if (!resourceTypeId || resourceTypeId === '') {
+      return res.status(400).json({ error: 'resourceTypeId is required' });
+    }
 
     if (!resource) {
       res.status(404).json({ message: 'Resource not found' });
@@ -198,7 +246,13 @@ export const getResources = async (req: Request, res: Response) => {
 
     res.status(200).json(resource);
   } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return res.status(400).json({ error: 'Argument `resourceTypeId` is missing or invalid.' });
+      }
+    } else {
+      res.status(500).json({ error: (error as Error).message });
+    }
   }
 };
 
@@ -445,6 +499,56 @@ export const updateResourceStatus = async (req: Request, res: Response) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
         return res.status(404).json({ error: 'Resource not found.' });
+      }
+    }
+    res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+/**
+ * @swagger
+ * /resources/{id}:
+ *   delete:
+ *     summary: Delete a resource by ID
+ *     description: Deletes a resource by its ID.
+ *     tags: [Resources]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The resource ID
+ *     responses:
+ *       204:
+ *         description: Resource deleted successfully
+ *       400:
+ *         description: Invalid resource ID
+ *       404:
+ *         description: Resource not found
+ *       500:
+ *         description: Internal server error
+ */
+export const deleteResource = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const resourceId = parseInt(id, 10);
+
+    if (isNaN(resourceId)) {
+      return res.status(400).json({ error: 'Invalid resource ID' });
+    }
+
+    await prisma.resource.delete({
+      where: { id: resourceId },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        // Record to delete does not exist
+        return res.status(404).json({ error: 'Resource not found' });
       }
     }
     res.status(500).json({ error: (error as Error).message });

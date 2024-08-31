@@ -455,14 +455,18 @@ const getAllUsers = async (req: Request, res: Response) => {
       skip,
       take,
     });
-
+    const usersWithStringIds = users.map(user => ({
+      ...user,
+      mobile: Number(user.mobile),
+    }));
+    
     const totalUsers = await prisma.user.count();
 
     res.status(200).json({
       totalUsers,
       totalPages: Math.ceil(totalUsers / take),
       currentPage: Number(page),
-      users,
+      usersWithStringIds,
     });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

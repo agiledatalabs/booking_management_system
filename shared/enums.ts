@@ -1,8 +1,8 @@
 // src/types/enums.ts
 export enum BookingType {
-  TYPE1 = '2 Hour',
-  TYPE2 = 'Half Day',
-  TYPE3 = 'Full Day',
+  TWO_HOUR = 'Two Hours',
+  HALF_DAY = 'Half Day',
+  FULL_DAY = 'Full Day',
 }
 
 export enum TimeSlots {

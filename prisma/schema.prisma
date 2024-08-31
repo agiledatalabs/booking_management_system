@@ -11,7 +11,7 @@ model User {
   id               Int       @id @default(autoincrement())
   name             String
   email            String    @unique
-  mobile           BigInt       @unique
+  mobile           BigInt    @unique
   type             String //Admin, Internal, External
   active           Boolean   @default(true)
   password         String // Hashed password
@@ -37,7 +37,7 @@ model Resource {
   priceInternal  Int
   priceExternal  Int
   bookingType    String
-  active         Boolean
+  active         Boolean      @default(true)
   resourceType   ResourceType @relation(fields: [resourceTypeId], references: [id])
   // requireApproval Boolean      @default(true)
   // bookingTypes   BookingType  @relation(fields: [bookingType], references: [id])
@@ -64,28 +64,29 @@ model Message {
   text           String
   sentBy         Int
   recepientType  String?
-  sentTo         Int?      
+  sentTo         Int?
   readByReciever Boolean  @default(false)
   timestamp      DateTime @default(now())
   sender         User     @relation("SentMessages", fields: [sentBy], references: [id])
-  reciever       User?     @relation("ReceivedMessages", fields: [sentTo], references: [id])
+  reciever       User?    @relation("ReceivedMessages", fields: [sentTo], references: [id])
 
   @@index([timestamp])
 }
 
 model Order {
-  id            Int      @id @default(autoincrement())
-  mode          String
-  transactionId String
-  bookingDate   DateTime
-  amount        Int
-  resourceId    Int
-  resourceQty   Int
-  bookingType   String
-  timeSlot      String
-  timestamp     DateTime
-  userId        Int
-  status        String
-  user          User     @relation(fields: [userId], references: [id])
-  resouece      Resource @relation(fields: [resourceId], references: [id])
+  id                   Int       @id @default(autoincrement())
+  mode                 String
+  transactionId        String
+  bookingDate          DateTime
+  amount               Int
+  resourceId           Int?
+  resourceName         String    @default("null")
+  resourceQty          Int
+  bookingType          String
+  timeSlot             String
+  timestamp            DateTime
+  userId               Int
+  status               String
+  user                 User      @relation(fields: [userId], references: [id])
+  resouece             Resource? @relation(fields: [resourceId], references: [id])
 }

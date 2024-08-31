@@ -15,6 +15,7 @@ describe('POST /register', () => {
   beforeAll(async () => {
     // Setup: Clear the database or create necessary test data
     await prisma.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
+    await prisma.order.deleteMany({})
     await prisma.user.deleteMany({});
   });
 
@@ -77,6 +78,8 @@ app.post('/login', login);
 describe('POST /login', () => {
   beforeAll(async () => {
     // Setup: Clear the database and create a test user
+    await prisma.$executeRaw`ALTER SEQUENCE "User_id_seq" RESTART WITH 1`;
+    await prisma.order.deleteMany({});
     await prisma.user.deleteMany({});
     const hashedPassword = await bcrypt.hash('password123', 10);
     await prisma.user.create({

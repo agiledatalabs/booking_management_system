@@ -110,7 +110,12 @@ export const addResourceType = async (req: Request, res: Response) => {
     });
     res.status(201).json(newResourceType);
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      // Unique constraint violation
+      res.status(400).json({ error: 'A resource type with this name already exists' });
+    } else {
+      res.status(500).json({ error: (error as Error).message });
+    }
   }
 };
 
@@ -127,6 +132,13 @@ export const addResourceType = async (req: Request, res: Response) => {
  *           type: integer
  *         required: true
  *         description: The ID of the resource type to delete
+ *       - in: query
+ *         name: forceDelete
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Cascade delete resource associated with this ResourceType
+
  *     responses:
  *       200:
  *         description: Resource type deleted successfully
@@ -161,16 +173,25 @@ export const addResourceType = async (req: Request, res: Response) => {
  */
 export const deleteResourceType = async (req: Request, res: Response) => {
   const { id } = req.params;
-
+  const { forceDelete } = req.query
   try {
+    if (forceDelete === 'true') {
+      // Delete associated resources first
+      await prisma.resource.deleteMany({
+        where: { resourceTypeId: Number(id) },
+      });
+    }
     await prisma.resourceType.delete({
       where: { id: Number(id) },
     });
-    res.status(200).json({ message: 'Resource type deleted successfully' });
+    res.status(204).json(null);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
         return res.status(404).json({ error: 'Resource type not found.' });
+      }
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'Cannot delete resource type as it is associated with existing resources.' });
       }
     }
     res.status(500).json({ error: (error as Error).message });
