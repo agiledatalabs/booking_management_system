@@ -43,9 +43,19 @@ const AddResourcePage: React.FC = () => {
   return (
     <div className="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg bg-white shadow-md">
       <h1 className="text-2xl font-bold text-center mb-6">Add Resource</h1>
-      <form onSubmit={(e) => { e.preventDefault(); handleAddResource(); }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleAddResource();
+        }}
+      >
         <div className="mb-4">
-          <label htmlFor="resourceTypeId" className="block text-sm font-medium text-gray-700">Resource Type</label>
+          <label
+            htmlFor="resourceTypeId"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Resource Type
+          </label>
           <select
             id="resourceTypeId"
             value={resourceTypeId}
@@ -55,12 +65,19 @@ const AddResourcePage: React.FC = () => {
           >
             <option value="">Select a resource type</option>
             {resourceTypes.map((type) => (
-              <option key={type.id} value={type.id}>{type.name}</option>
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
             ))}
           </select>
         </div>
         <div className="mb-4">
-          <label htmlFor="resourceName" className="block text-sm font-medium text-gray-700">Resource Name</label>
+          <label
+            htmlFor="resourceName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Resource Name
+          </label>
           <input
             type="text"
             id="resourceName"
@@ -71,7 +88,12 @@ const AddResourcePage: React.FC = () => {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Description
+          </label>
           <textarea
             id="description"
             value={description}
@@ -80,7 +102,12 @@ const AddResourcePage: React.FC = () => {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="createdAt" className="block text-sm font-medium text-gray-700">Created At</label>
+          <label
+            htmlFor="createdAt"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Created At
+          </label>
           <input
             type="date"
             id="createdAt"
@@ -89,7 +116,10 @@ const AddResourcePage: React.FC = () => {
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
         </div>
-        <button type="submit" className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <button
+          type="submit"
+          className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
           Add Resource
         </button>
       </form>

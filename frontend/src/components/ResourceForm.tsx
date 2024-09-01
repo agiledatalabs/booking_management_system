@@ -18,13 +18,15 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
   const [maxQty, setMaxQty] = useState(1);
   const [priceInternal, setPriceInternal] = useState('');
   const [priceExternal, setPriceExternal] = useState('');
-  const [bookingType, setBookingType] = useState<BookingType>(BookingType.TYPE1);
+  const [bookingType, setBookingType] = useState<BookingType>(
+    BookingType.TYPE1
+  );
   const [active, setActive] = useState(true);
 
   useEffect(() => {
     const fetchResourceTypes = async () => {
       try {
-        console.log("fetching resource types")
+        console.log('fetching resource types');
         const response = await axios.get('/api/resource-types');
         setResourceTypes(response.data);
       } catch (error) {
@@ -47,12 +49,13 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
       priceInternal: parseInt(priceInternal, 10),
       priceExternal: parseInt(priceExternal, 10),
       bookingType,
-      active
+      active,
     };
 
     try {
-
-      const data = await axios.post('/api/resources', formData
+      const data = await axios.post(
+        '/api/resources',
+        formData
         // headers: {
         //   'Content-Type': 'multipart/form-data',
         // },
@@ -66,12 +69,19 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
   };
 
   return (
-    <form onSubmit={(e) => { 
-      e.preventDefault(); 
-      handleAddResource(); 
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleAddResource();
+      }}
+    >
       <div className="mb-4">
-        <label htmlFor="resourceTypeId" className="block text-sm font-medium text-gray-700">Resource Type</label>
+        <label
+          htmlFor="resourceTypeId"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Resource Type
+        </label>
         <select
           id="resourceTypeId"
           value={resourceTypeId ?? ''}
@@ -81,12 +91,19 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
         >
           <option value="">Select a resource type</option>
           {resourceTypes.map((resourceTypeId) => (
-            <option key={resourceTypeId.id} value={resourceTypeId.id}>{resourceTypeId.name}</option>
+            <option key={resourceTypeId.id} value={resourceTypeId.id}>
+              {resourceTypeId.name}
+            </option>
           ))}
         </select>
       </div>
       <div className="mb-4">
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Resource Name</label>
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Resource Name
+        </label>
         <input
           type="text"
           id="name"
@@ -97,7 +114,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="maxQty" className="block text-sm font-medium text-gray-700">Max Quantity</label>
+        <label
+          htmlFor="maxQty"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Max Quantity
+        </label>
         <input
           type="number"
           id="maxQty"
@@ -108,7 +130,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="priceInternal" className="block text-sm font-medium text-gray-700">Internal Price</label>
+        <label
+          htmlFor="priceInternal"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Internal Price
+        </label>
         <div className="flex items-center mt-1">
           <span className="mr-2">₹</span>
           <input
@@ -122,7 +149,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
         </div>
       </div>
       <div className="mb-4">
-        <label htmlFor="priceExternal" className="block text-sm font-medium text-gray-700">External Price</label>
+        <label
+          htmlFor="priceExternal"
+          className="block text-sm font-medium text-gray-700"
+        >
+          External Price
+        </label>
         <div className="flex items-center mt-1">
           <span className="mr-2">₹</span>
           <input
@@ -136,7 +168,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
         </div>
       </div>
       <div className="mb-4">
-        <label htmlFor="bookingType" className="block text-sm font-medium text-gray-700">Booking Type</label>
+        <label
+          htmlFor="bookingType"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Booking Type
+        </label>
         <select
           id="bookingType"
           value={bookingType}
@@ -145,12 +182,19 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
           required
         >
           {Object.values(BookingType).map((type) => (
-            <option key={type} value={type}>{type}</option>
+            <option key={type} value={type}>
+              {type}
+            </option>
           ))}
         </select>
       </div>
       <div className="mb-4">
-        <label htmlFor="active" className="block text-sm font-medium text-gray-700">Active</label>
+        <label
+          htmlFor="active"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Active
+        </label>
         <input
           type="checkbox"
           id="active"
@@ -159,7 +203,10 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onRequestClose }) => {
           className="mt-1 block"
         />
       </div>
-      <button type="submit" className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      <button
+        type="submit"
+        className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
         Add Resource
       </button>
     </form>
