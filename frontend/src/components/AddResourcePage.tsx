@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 interface ResourceType {
   id: string;
   name: string;
@@ -93,6 +94,7 @@ const AddResourcePage: React.FC = () => {
           Add Resource
         </button>
       </form>
+      
     </div>
   );
 };

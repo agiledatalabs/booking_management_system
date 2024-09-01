@@ -6,9 +6,10 @@ import { FaFlaskVial } from "react-icons/fa6";
 import { MdBackup } from "react-icons/md";
 import Tooltip from "../utils/Tooltip";
 
+
 const Navbar = () => {
   return (
-    <nav className='flex justify-between px-12 py-4 mb-6 bg-[#4338CA] text-white'>
+    <nav className='flex justify-between px-12 py-4 mb-6 bg-indigo-600 text-white'>
         <header className='flex gap-2 justify-center items-center font-bold uppercase'>
             <FaFlaskVial />
             <h2>Lab Resource Booking System</h2>
