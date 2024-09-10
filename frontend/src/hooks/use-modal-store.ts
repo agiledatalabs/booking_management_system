@@ -3,6 +3,7 @@ import { create } from "zustand";
 export type ModalType =
     "addResourceType" 
     | "addResource"
+    | "addUser"
 ;
 
 interface ModalStore {
